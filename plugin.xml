@@ -27,7 +27,12 @@
 				<param name="ios-package" value="SOSPicker"/>
 			</feature>
 		</config-file>
-
+        <config-file target="*-Info.plist" parent="LSApplicationQueriesSchemes"> <!--IOS 9 youtube WORKAROUND-->
+           <key>LSApplicationQueriesSchemes</key>
+                <array>
+                    <string>youtube</string>
+                </array>
+       </config-file>
 		<header-file src="src/ios/SOSPicker.h" />
 		<source-file src="src/ios/SOSPicker.m" />
 
