@@ -59,7 +59,6 @@
     NSFileManager* fileMgr = [[NSFileManager alloc] init];
     NSString* filePath;
     ALAsset* asset = nil;
-    UIImageOrientation orientation = UIImageOrientationUp;;
     CGSize targetSize = CGSizeMake(self.width, self.height);
 	for (NSDictionary *dict in info) {
         asset = [dict objectForKey:@"ALAsset"];
@@ -71,27 +70,30 @@
         } while ([fileMgr fileExistsAtPath:filePath]);
         
         @autoreleasepool {
-            ALAssetRepresentation *assetRep = [asset defaultRepresentation];
-            CGImageRef imgRef = NULL;
-            
-            //defaultRepresentation returns image as it appears in photo picker, rotated and sized,
-            //so use UIImageOrientationUp when creating our image below.
-            if (picker.returnsOriginalImage) {
-                imgRef = [assetRep fullResolutionImage];
-                orientation = [assetRep orientation];
-            } else {
-                imgRef = [assetRep fullScreenImage];
-            }
-            
-            UIImage* image = [UIImage imageWithCGImage:imgRef scale:1.0f orientation:orientation];
-            NSData *temp = UIImageJPEGRepresentation(image, 1.0);
-            NSError *error;
             [[NSFileManager defaultManager] createDirectoryAtPath:[filePath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
-            if (![temp writeToFile:filePath options:NSAtomicWrite error:&error]) {
-                NSLog(@"error %@",error);
-               
+            ALAssetRepresentation *representation = [asset defaultRepresentation];
+            
+            [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+            NSOutputStream *outPutStream = [NSOutputStream outputStreamToFileAtPath:filePath append:YES];
+            [outPutStream open];
+            
+            long long offset = 0;
+            long long bytesRead = 0;
+            
+            NSError *error;
+            uint8_t * buffer = malloc(131072);
+            while (offset<[representation size] && [outPutStream hasSpaceAvailable]) {
+                bytesRead = [representation getBytes:buffer fromOffset:offset length:131072 error:&error];
+                [outPutStream write:buffer maxLength:bytesRead];
+                offset = offset+bytesRead;
             }
+            [outPutStream close];
+            free(buffer);
+            
     
+            
+            UIImage* image = [UIImage imageWithContentsOfFile:filePath];
+   
             if (self.width == 0 && self.height == 0) {
                 data = UIImageJPEGRepresentation(image, self.quality/100.0f);
             } else {
