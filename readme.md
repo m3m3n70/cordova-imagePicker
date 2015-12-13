@@ -3,7 +3,7 @@ cordova-imagePicker
 
 ## Memory management optimisation
 
-This is a version of https://github.com/wymsee/cordova-imagePicker
+This is a version of https://github.com/wymsee/cordova-imagePicker .
 It includes an optimisation of the move action from asset folder
 It also saves the original image in the docs folder
 
